@@ -15,14 +15,17 @@ __max_player = 7
 
 def processing_before_ocr(src_img: Image):
     grey_image = cv2.cvtColor(numpy.array(src_img), cv2.COLOR_RGB2GRAY)
-    blur = cv2.GaussianBlur(grey_image, (5, 5), 0)
+    thresh = cv2.threshold(grey_image, 180, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 
-    kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
-    sharpen = cv2.filter2D(blur, -1, kernel)
+    norm = cv2.distanceTransform(thresh, cv2.DIST_L2, 5)
+    norm = cv2.normalize(norm, norm, 0, 1.0, cv2.NORM_MINMAX)
+    norm = (norm * 255).astype("uint8")
 
-    thresh = cv2.threshold(sharpen, 200, 255, cv2.THRESH_TOZERO)[1]
+    after_thresh = cv2.threshold(norm, 0, 255,
+        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 
-    return thresh
+
+    return after_thresh
 
 
 def get_allied_list(full_img):
