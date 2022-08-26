@@ -15,7 +15,7 @@ processing = False
 
 def start_xvm():
     print("Start Processing Screenshot")
-    start_time = time.time()
+    start_time = time.perf_counter()
     print(Fore.RESET + Back.RESET)
     # Get Game Loading Snapshot
     raw_snapshot = get_game_screenshot()
@@ -36,7 +36,7 @@ def start_xvm():
 
     ConsoleGui().render(allied_stats, enemy_stats)
     print(Fore.WHITE + Back.RESET)
-    print(f"Done in {time.time() - start_time} second")
+    print(f"Done in {time.perf_counter() - start_time} second")
 
 
 def on_press(key: keyboard.Key | keyboard.KeyCode):
