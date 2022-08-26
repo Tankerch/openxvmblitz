@@ -62,7 +62,7 @@ def __get_ign_from_image(full_img):
     if len(result) < 5:
         return None
     result = re.sub("[{|(\[].*[}|)\]](.*?)([{|(\[].*[}|)\]])?", "", result)
-    result = result.strip()
+    result = result.strip().replace(" ", "")
     return result
 
 
