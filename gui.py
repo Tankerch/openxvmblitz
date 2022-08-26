@@ -61,8 +61,9 @@ class ConsoleGui(BaseGui):
 
     def __print_allied_output(self, stats_list: list[PlayerStats]):
         print(Fore.GREEN + "Allied Team")
-        for stats in stats_list:
-            if stats is None:
+        for index, stats in enumerate(stats_list):
+            if not stats.valid_to_print():
+                print(Fore.WHITE + stats.ign)
                 continue
             tabs = self.__print_tab(stats.ign)
             print(Fore.WHITE + str(stats.ign) + tabs +
@@ -72,8 +73,9 @@ class ConsoleGui(BaseGui):
 
     def __print_enemy_output(self, stats_list: list[PlayerStats]):
         print(Fore.RED + "Enemy Team")
-        for stats in stats_list:
-            if stats is None:
+        for index, stats in enumerate(stats_list):
+            if not stats.valid_to_print():
+                print(Fore.WHITE + stats.ign)
                 continue
             tabs = self.__print_tab(stats.ign)
             print(Fore.WHITE + str(stats.ign) + tabs +

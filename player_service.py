@@ -36,15 +36,16 @@ class WgApiService(BasePlayerStatsService):
         asyncio.set_event_loop(loop)
         urls = [asyncio.ensure_future(self.get_individual_stats(
             ign=player, region=region, timeout=timeout)) for player in players]
-        results = loop.run_until_complete(asyncio.gather(*urls))
-        return filter(lambda x: x is not None, results)
+        return loop.run_until_complete(asyncio.gather(*urls))
 
     async def get_individual_stats(self, ign: str, region: Literal["asia", "na", "eu", "ru"],
                                    timeout: int = 5) -> PlayerStats | None:
         account_id = self.__get_account_id(ign)
         if account_id is None:
-            return None
+            return PlayerStats(ign=ign)
         account_stats = self.__fetch_to_wg_api(account_id)
+        if account_stats is None:
+            return PlayerStats(ign=ign)
         return account_stats
 
     @cached(cache=TTLCache(maxsize=1024, ttl=604800))

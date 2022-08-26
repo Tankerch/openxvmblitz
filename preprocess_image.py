@@ -4,7 +4,6 @@ from math import floor
 
 import cv2
 import numpy
-import numpy as np
 import pytesseract
 from PIL import Image
 
@@ -22,8 +21,7 @@ def processing_before_ocr(src_img: Image):
     norm = (norm * 255).astype("uint8")
 
     after_thresh = cv2.threshold(norm, 0, 255,
-        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
+                                 cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 
     return after_thresh
 
@@ -53,8 +51,6 @@ def get_enemy_list(full_img):
         player_box = cropped_image[section_h * i: section_h * (i + 1), 0: AppConfig.box_width]
         player_box = cv2.resize(player_box, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         player_ign = __get_ign_from_image(player_box)
-        if player_ign is None:
-            continue
         names.append(player_ign)
     return names
 
