@@ -11,14 +11,14 @@ from config import AppConfig
 def get_players_list_img(wotb_window: Image):
     # Max WoTB player width is 1270 from center
     # Max WoTB player height is 350 from y1
-    max_player_width = 1270
-    max_player_height = 350
+    section_w = AppConfig.players_section_w
+    section_h = AppConfig.players_section_h
 
-    x_margin = (wotb_window.width - max_player_width) / 2
+    x_margin = (wotb_window.width - section_w) / 2
     x1 = x_margin
     x2 = wotb_window.width - x_margin
     y1 = AppConfig.start_player_y_point
-    y2 = y1 + max_player_height
+    y2 = y1 + section_h
     first_point = (math.floor(x1), math.floor(y1))
     second_point = (math.floor(x2), math.floor(y2))
 

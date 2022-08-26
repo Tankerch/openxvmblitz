@@ -8,6 +8,7 @@ import pytesseract
 from PIL import Image
 
 from config import AppConfig
+from screenshot import get_players_list_img
 
 __max_player = 7
 
@@ -25,31 +26,15 @@ def processing_before_ocr(src_img: Image):
     return after_thresh
 
 
-def get_allied_list(full_img):
-    cropped_image = full_img[0: 350, 0:AppConfig.box_width]
-
+def get_players_list(cropped_image):
+    player_box_h = floor(AppConfig.players_section_h / __max_player)
     names: list[str] = []
     for i in range(__max_player):
-        player_box = cropped_image[50 * i: 50 * (i + 1), 0:AppConfig.box_width]
+        player_box = cropped_image[player_box_h * i: player_box_h * (i + 1), 0:AppConfig.box_width]
         player_box = cv2.resize(player_box, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         player_ign = __get_ign_from_image(player_box)
         if player_ign is None:
             continue
-        names.append(player_ign)
-    return names
-
-
-def get_enemy_list(full_img):
-    h, w = full_img.shape
-    section_h = floor(h / __max_player)
-
-    cropped_image = full_img[0: 350, w - AppConfig.box_width:w]
-
-    names: list[str] = []
-    for i in range(__max_player):
-        player_box = cropped_image[section_h * i: section_h * (i + 1), 0: AppConfig.box_width]
-        player_box = cv2.resize(player_box, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-        player_ign = __get_ign_from_image(player_box)
         names.append(player_ign)
     return names
 
@@ -65,17 +50,14 @@ def __get_ign_from_image(full_img):
     return result
 
 
-def __direct_testing__():
+def __main__():
     for i in range(3):
         test_image = Image.open(os.path.relpath(f"static/Screenshot_{i + 1}.jpg"))
-        test_image = test_image.crop(
-            (AppConfig.first_point[0], AppConfig.first_point[1], AppConfig.second_point[0], AppConfig.second_point[1]))
+        test_image = get_players_list_img(test_image)
         processed_image = processing_before_ocr(test_image)
         cv2.imshow("asd", processed_image)
         cv2.waitKey()
-        print(get_allied_list(processed_image))
-        print(get_enemy_list(processed_image))
 
 
 if __name__ == "__main__":
-    __direct_testing__()
+    __main__()

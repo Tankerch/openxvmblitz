@@ -1,3 +1,4 @@
+import logging
 import time
 from multiprocessing.pool import ThreadPool
 
@@ -5,9 +6,10 @@ from colorama import Fore, Back
 from colorama import init
 from pynput import keyboard
 
+from config import AppConfig
 from gui import ConsoleGui
 from player_service import WgApiService
-from preprocess_image import get_allied_list, get_enemy_list, processing_before_ocr
+from preprocess_image import processing_before_ocr, get_players_list
 from screenshot import get_players_list_img, get_wotb_window
 
 processing = False
@@ -17,27 +19,33 @@ def start_xvm():
     print("Start Processing Screenshot")
     start_time = time.perf_counter()
     print(Fore.RESET + Back.RESET)
+
     # Get Game Loading Snapshot
-    wotb_window = get_wotb_window()
-    player_snapshot = get_players_list_img(wotb_window)
+    wotb_window_img = get_wotb_window()
+    player_snapshot_img = get_players_list_img(wotb_window_img)
 
-    # Process Image to OCR ready
-    processed_image = processing_before_ocr(player_snapshot)
-    allied_ign_list = get_allied_list(processed_image)
-    enemy_ign_list = get_enemy_list(processed_image)
+    # Process Image using OCR
+    processed_img = processing_before_ocr(player_snapshot_img)
+    allied_section_img = processed_img[0: AppConfig.players_section_h, 0:AppConfig.box_width]
+    enemy_section_img = processed_img[0: AppConfig.players_section_h,
+                        AppConfig.players_section_w - AppConfig.box_width:AppConfig.players_section_w]
 
-    # Web scrapping data
-    pool = ThreadPool()
-    api_service = WgApiService()
-    allied_pool = pool.apply_async(api_service.get_players_stats, (allied_ign_list, "asia"))
-    enemy_pool = pool.apply_async(api_service.get_players_stats, (enemy_ign_list, "asia"))
+    allied_ign_list = get_players_list(allied_section_img)
+    enemy_ign_list = get_players_list(enemy_section_img)
 
-    allied_stats = allied_pool.get()
-    enemy_stats = enemy_pool.get()
+    # Get player data via API
+    with ThreadPool() as api_pool:
+        api_service = WgApiService()
+        allied_pool = api_pool.apply_async(api_service.get_players_stats, (allied_ign_list, "asia"))
+        enemy_pool = api_pool.apply_async(api_service.get_players_stats, (enemy_ign_list, "asia"))
 
+        allied_stats = allied_pool.get()
+        enemy_stats = enemy_pool.get()
+
+    # Render
     ConsoleGui().render(allied_stats, enemy_stats)
+    print(f"Done in {time.perf_counter() - start_time} second(s)")
     print(Fore.WHITE + Back.RESET)
-    print(f"Done in {time.perf_counter() - start_time} second")
 
 
 def on_press(key: keyboard.Key | keyboard.KeyCode):
@@ -48,6 +56,7 @@ def on_press(key: keyboard.Key | keyboard.KeyCode):
         processing = True
         start_xvm()
         processing = False
+        print("Start listening... on Numpad 3")
 
 
 def main():
