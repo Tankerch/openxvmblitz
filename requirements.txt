@@ -8,3 +8,4 @@ colorama~=0.4.5
 opencv-python~=4.5.5.64
 pynput~=1.7.6
 pytesseract~=0.3.9
+PyWinCtl~=0.0.38
