@@ -20,8 +20,7 @@ def processing_before_ocr(src_img: Image):
     norm = cv2.normalize(norm, norm, 0, 1.0, cv2.NORM_MINMAX)
     norm = (norm * 255).astype("uint8")
 
-    after_thresh = cv2.threshold(norm, 0, 255,
-                                 cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    after_thresh = cv2.threshold(norm, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 
     return after_thresh
 
@@ -66,7 +65,7 @@ def __get_ign_from_image(full_img):
     return result
 
 
-if __name__ == "__main__":
+def __direct_testing__():
     for i in range(3):
         test_image = Image.open(os.path.relpath(f"static/Screenshot_{i + 1}.jpg"))
         test_image = test_image.crop(
@@ -76,3 +75,7 @@ if __name__ == "__main__":
         cv2.waitKey()
         print(get_allied_list(processed_image))
         print(get_enemy_list(processed_image))
+
+
+if __name__ == "__main__":
+    __direct_testing__()

@@ -34,8 +34,8 @@ class WgApiService(BasePlayerStatsService):
                           timeout: int = 5):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        urls = [asyncio.ensure_future(self.get_individual_stats(
-            ign=player, region=region, timeout=timeout)) for player in players]
+        urls = [asyncio.ensure_future(self.get_individual_stats(ign=player, region=region, timeout=timeout)) for player
+                in players]
         return loop.run_until_complete(asyncio.gather(*urls))
 
     async def get_individual_stats(self, ign: str, region: Literal["asia", "na", "eu", "ru"],
@@ -52,12 +52,10 @@ class WgApiService(BasePlayerStatsService):
     def __fetch_to_wg_api(self, account_id: str):
         if self.application_id is None:
             return None
-        res = requests.get("https://api.wotblitz.asia/wotb/account/info/", params={
-            "application_id": self.application_id,
-            "account_id": account_id,
-            "fields": "statistics.all.dropped_capture_points,statistics.all.spotted,account_id,nickname,"
-                      "statistics.all.battles,statistics.all.damage_dealt,statistics.all.wins,statistics.all.frags "
-        })
+        res = requests.get("https://api.wotblitz.asia/wotb/account/info/",
+                           params={"application_id": self.application_id, "account_id": account_id,
+                                   "fields": "statistics.all.dropped_capture_points,statistics.all.spotted,account_id,nickname,"
+                                             "statistics.all.battles,statistics.all.damage_dealt,statistics.all.wins,statistics.all.frags "})
         try:
             return self.__convert_to_player_statistic(res.json()["data"][f"{account_id}"])
         except Exception as e:
@@ -69,12 +67,8 @@ class WgApiService(BasePlayerStatsService):
         if self.application_id is None:
             return None
 
-        res = requests.get(
-            f'https://api.wotblitz.asia/wotb/account/list/', params={
-                "application_id": self.application_id,
-                "search": ign,
-                "type": "exact"
-            })
+        res = requests.get(f'https://api.wotblitz.asia/wotb/account/list/',
+                           params={"application_id": self.application_id, "search": ign, "type": "exact"})
         data = res.json()
         try:
             if len(data["data"]) == 0:
@@ -91,15 +85,15 @@ class WgApiService(BasePlayerStatsService):
         battle_count = stats_all["battles"]
         avg_dmg = stats_all["damage_dealt"] / battle_count
         wr = stats_all["wins"] / battle_count
-        stats = PlayerStats(ign=dict_wg["nickname"], account_id=dict_wg["account_id"], avg_dmg=round(
-            avg_dmg), wr=round(wr * 100, 2), region="asia")
+        stats = PlayerStats(ign=dict_wg["nickname"], account_id=dict_wg["account_id"], avg_dmg=round(avg_dmg),
+                            wr=round(wr * 100, 2), region="asia")
         return stats
 
 
-def __main():
+def __main__():
     stats = WgApiService().get_players_stats(["Tankerch"])
     print(stats)
 
 
 if __name__ == "__main__":
-    __main()
+    __main__()
