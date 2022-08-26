@@ -8,7 +8,7 @@ from pynput import keyboard
 from gui import ConsoleGui
 from player_service import WgApiService
 from preprocess_image import get_allied_list, get_enemy_list, processing_before_ocr
-from screenshot import get_game_screenshot
+from screenshot import get_players_list_img
 
 processing = False
 
@@ -18,7 +18,7 @@ def start_xvm():
     start_time = time.perf_counter()
     print(Fore.RESET + Back.RESET)
     # Get Game Loading Snapshot
-    raw_snapshot = get_game_screenshot()
+    raw_snapshot = get_players_list_img()
 
     # Process Image to OCR ready
     processed_image = processing_before_ocr(raw_snapshot)
