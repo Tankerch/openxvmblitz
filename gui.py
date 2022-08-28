@@ -52,9 +52,9 @@ class ConsoleGui(BaseGui):
     @staticmethod
     def __print_tab(ign: str):
         ign_length = len(ign)
-        if ign_length >= 16:
+        if ign_length >= 24:
             return "\t"
-        if ign_length >= 12:
+        if ign_length >= 16:
             return "\t\t"
         if ign_length >= 8:
             return "\t\t\t"
