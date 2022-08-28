@@ -85,7 +85,7 @@ class ConsoleGui(BaseGui):
 
 
 class OverlayGui(BaseGui):
-    __default_font__ = ("Arial", 14, "bold")
+    __default_font = ("Arial", 14, "bold")
 
     __transparent_color = "white"
 
@@ -106,17 +106,17 @@ class OverlayGui(BaseGui):
         return self.__root.mainloop()
 
     @staticmethod
-    def __color_for_wr__(wr: float):
+    def __color_for_wr(wr: float):
         if wr > 60:
-            return "magenta"
+            return "green"
         if wr > 52:
             return "green"
         return "red"
 
     @staticmethod
-    def __color_avg_dmg__(avg_dmg: int):
+    def __color_avg_dmg(avg_dmg: int):
         if avg_dmg > 1400:
-            return "magenta"
+            return "green"
         if avg_dmg > 1000:
             return "green"
         return "red"
@@ -141,9 +141,9 @@ class OverlayGui(BaseGui):
                 empty_widget.grid(sticky=tk.W, row=idx, column=1)
                 continue
             wr = tk.Label(allied_frame, text=f"{str(player.wr)}%", bg=self.__transparent_color,
-                          fg=self.__color_for_wr__(player.wr), font=self.__default_font__)
+                          fg=self.__color_for_wr(player.wr), font=self.__default_font)
             dmg = tk.Label(allied_frame, text=str(player.avg_dmg), bg=self.__transparent_color,
-                           fg=self.__color_avg_dmg__(player.avg_dmg), font=self.__default_font__)
+                           fg=self.__color_avg_dmg(player.avg_dmg), font=self.__default_font)
             wr.grid(sticky=tk.W, row=idx, column=0, padx=(player_battle_box_width, 8))
             dmg.grid(sticky=tk.W, row=idx, column=1)
         allied_frame.grid(column=0, row=0, sticky=tk.NW)
@@ -157,9 +157,9 @@ class OverlayGui(BaseGui):
                 empty_widget.grid(row=idx, column=0)
                 continue
             wr = tk.Label(enemy_frame, text=f"{str(player.wr)}%", bg=self.__transparent_color,
-                          fg=self.__color_for_wr__(player.wr), font=self.__default_font__)
+                          fg=self.__color_for_wr(player.wr), font=self.__default_font)
             dmg = tk.Label(enemy_frame, text=str(player.avg_dmg), bg=self.__transparent_color,
-                           fg=self.__color_avg_dmg__(player.avg_dmg), font=self.__default_font__)
+                           fg=self.__color_avg_dmg(player.avg_dmg), font=self.__default_font)
             wr.grid(row=idx, column=1, padx=(8, player_battle_box_width))
             dmg.grid(row=idx, column=0)
         enemy_frame.grid(column=1, row=0, sticky=tk.NE)
@@ -167,13 +167,12 @@ class OverlayGui(BaseGui):
 
 
 def __main__():
-    gui = OverlayGui()
+    gui = ConsoleGui()
     allied_list = [PlayerStats(ign=f"allied_{i}", wr=round(60 + i * 0.1, 2), avg_dmg=800 + int(f"{i}00")) for i in
                    range(7)]
     allied_list[1] = PlayerStats(ign="allied_failed")
     enemy_list = [PlayerStats(ign=f"enemy_{i}", wr=round(50 + i, 2), avg_dmg=800 + int(f"{i}00")) for i in range(7)]
     gui.render(allied_list, enemy_list)
-    gui.mainloop()
 
 
 if __name__ == "__main__":
