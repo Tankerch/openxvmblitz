@@ -1,4 +1,3 @@
-import logging
 import time
 from multiprocessing.pool import ThreadPool
 
@@ -59,8 +58,13 @@ def on_press(key: keyboard.Key | keyboard.KeyCode):
         print("Start listening... on Numpad 3")
 
 
-def main():
+def initialise():
+    #  Init Colorama
     init()
+
+
+def main():
+    initialise()
     with keyboard.Listener(on_press=on_press) as listener:
         print("Start listening... on Numpad 3")
         listener.join()
