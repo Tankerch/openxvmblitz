@@ -1,12 +1,11 @@
 import time
 from multiprocessing.pool import ThreadPool
 
-from colorama import Fore, Back
-from colorama import init
+import colorama
 from pynput import keyboard
 
 from config import AppConfig
-from gui import ConsoleGui
+from gui import TableGui
 from player_service import WgApiService
 from preprocess_image import processing_before_ocr, get_players_list
 from screenshot import get_players_list_img, get_wotb_window
@@ -17,7 +16,7 @@ processing = False
 def start_xvm():
     print("Start Processing Screenshot")
     start_time = time.perf_counter()
-    print(Fore.RESET + Back.RESET)
+    print(colorama.Fore.RESET + colorama.Back.RESET)
 
     # Get Game Loading Snapshot
     wotb_window_img = get_wotb_window()
@@ -25,9 +24,10 @@ def start_xvm():
 
     # Process Image using OCR
     processed_img = processing_before_ocr(player_snapshot_img)
-    allied_section_img = processed_img[0: AppConfig.players_section_h, 0:AppConfig.box_width]
+    allied_section_img = processed_img[0: AppConfig.players_section_h,
+                                       0:AppConfig.box_width]
     enemy_section_img = processed_img[0: AppConfig.players_section_h,
-                        AppConfig.players_section_w - AppConfig.box_width:AppConfig.players_section_w]
+                                      AppConfig.players_section_w - AppConfig.box_width:AppConfig.players_section_w]
 
     allied_ign_list = get_players_list(allied_section_img)
     enemy_ign_list = get_players_list(enemy_section_img)
@@ -35,16 +35,18 @@ def start_xvm():
     # Get player data via API
     with ThreadPool() as api_pool:
         api_service = WgApiService()
-        allied_pool = api_pool.apply_async(api_service.get_players_stats, (allied_ign_list, "asia"))
-        enemy_pool = api_pool.apply_async(api_service.get_players_stats, (enemy_ign_list, "asia"))
+        allied_pool = api_pool.apply_async(
+            api_service.get_players_stats, (allied_ign_list, "asia"))
+        enemy_pool = api_pool.apply_async(
+            api_service.get_players_stats, (enemy_ign_list, "asia"))
 
         allied_stats = allied_pool.get()
         enemy_stats = enemy_pool.get()
 
     # Render
-    ConsoleGui().render(allied_stats, enemy_stats)
+    TableGui().render(allied_stats, enemy_stats)
     print(f"Done in {time.perf_counter() - start_time} second(s)")
-    print(Fore.WHITE + Back.RESET)
+    print(colorama.Fore.WHITE + colorama.Back.RESET)
 
 
 def on_press(key: keyboard.Key | keyboard.KeyCode):
@@ -59,8 +61,7 @@ def on_press(key: keyboard.Key | keyboard.KeyCode):
 
 
 def initialise():
-    #  Init Colorama
-    init()
+    colorama.init()
 
 
 def main():

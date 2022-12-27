@@ -1,6 +1,7 @@
+import os
 import tkinter as tk
 from abc import abstractmethod
-
+import prettytable
 from colorama import Fore
 
 from player_stats import PlayerStats
@@ -18,15 +19,9 @@ class BaseGui:
         pass
 
 
-class ConsoleGui(BaseGui):
-
-    def render(self, allied_list: list[PlayerStats], enemy_list: list[PlayerStats]):
-        self.__print_allied_output(allied_list)
-        print("")
-        self.__print_enemy_output(enemy_list)
-
+class ColorStatsMixin:
     @staticmethod
-    def __color_avg_damage(avg_damage: int) -> Fore:
+    def color_avg_damage(avg_damage: int) -> Fore:
         if avg_damage > 1400:
             return console_color_code["unicum"]
         if avg_damage > 1000:
@@ -34,20 +29,20 @@ class ConsoleGui(BaseGui):
         return console_color_code["bad"]
 
     @staticmethod
-    def __color_wr(wr: float) -> Fore:
-        if wr > 60:
+    def color_wr(wr: float) -> Fore:
+        if wr >= 60:
             return console_color_code["unicum"]
-        if wr > 50:
+        if wr >= 50:
             return console_color_code["normal"]
         return console_color_code["bad"]
 
-    @staticmethod
-    def __color_wn8(wn8: float) -> Fore:
-        if wn8 > 1850:
-            return console_color_code["unicum"]
-        if wn8 > 1100:
-            return console_color_code["normal"]
-        return console_color_code["bad"]
+
+class ConsoleGui(BaseGui, ColorStatsMixin):
+
+    def render(self, allied_list: list[PlayerStats], enemy_list: list[PlayerStats]):
+        self.__print_allied_output(allied_list)
+        print("")
+        self.__print_enemy_output(enemy_list)
 
     @staticmethod
     def __print_tab(ign: str):
@@ -68,7 +63,7 @@ class ConsoleGui(BaseGui):
                 continue
             tabs = self.__print_tab(stats.ign)
             print(Fore.WHITE + str(stats.ign) + tabs +
-                  self.__color_wr(stats.wr) + f"{stats.wr}%" + "\t\t\t" + self.__color_avg_damage(
+                  self.color_wr(stats.wr) + f"{stats.wr}%" + "\t\t\t" + self.color_avg_damage(
                 stats.avg_dmg) + f"{stats.avg_dmg}")
             pass
 
@@ -80,98 +75,45 @@ class ConsoleGui(BaseGui):
                 continue
             tabs = self.__print_tab(stats.ign)
             print(Fore.WHITE + str(stats.ign) + tabs +
-                  self.__color_wr(stats.wr) + f"{stats.wr}%" + "\t\t\t" + self.__color_avg_damage(
+                  self.color_wr(stats.wr) + f"{stats.wr}%" + "\t\t\t" + self.color_avg_damage(
                 stats.avg_dmg) + f"{stats.avg_dmg}")
 
 
-class OverlayGui(BaseGui):
-    __default_font = ("Arial", 14, "bold")
-
-    __transparent_color = "white"
-
-    __init_executed = False
-
-    __root = tk.Tk()
-
-    def init(self):
-        self.__root.attributes('-fullscreen', True)
-        self.__root.wm_attributes("-topmost", True)
-        self.__root.wm_attributes("-transparentcolor", "white")
-        self.__root.config(bg=self.__transparent_color)
-
-        self.__root.option_add("*font", "Arial 14 bold")
-        self.__init_executed = True
-
-    def mainloop(self):
-        return self.__root.mainloop()
+class TableGui(BaseGui, ColorStatsMixin):
+    @staticmethod
+    def __render_avg_dmg(value):
+        if value is None:
+            return Fore.WHITE + "-"
+        console_color = TableGui.color_avg_damage(value)
+        return console_color + str(value) + Fore.WHITE
 
     @staticmethod
-    def __color_for_wr(wr: float):
-        if wr > 60:
-            return "green"
-        if wr > 52:
-            return "green"
-        return "red"
+    def __render_wr(value):
+        if value is None:
+            return Fore.WHITE + "-"
 
-    @staticmethod
-    def __color_avg_dmg(avg_dmg: int):
-        if avg_dmg > 1400:
-            return "green"
-        if avg_dmg > 1000:
-            return "green"
-        return "red"
+        console_color = TableGui.color_wr(value)
+        return console_color + str(value) + Fore.WHITE
 
     def render(self, allied_list: list[PlayerStats], enemy_list: list[PlayerStats]):
-        player_battle_box_width = 400
-
-        if not self.__init_executed:
-            self.init()
-
-        # Set to 50% width each frame
-        self.__root.columnconfigure(0, weight=1)
-
-        self.__root.columnconfigure(1, weight=1)
-
-        allied_frame = tk.Frame(self.__root)
-        allied_frame.config(bg=self.__transparent_color)
-        for idx, player in enumerate(allied_list):
-            if not player.valid_to_print():
-                empty_widget = tk.Label(allied_frame, text="A", bg=self.__transparent_color)
-                empty_widget.grid(sticky=tk.W, row=idx, column=0, padx=(player_battle_box_width, 8))
-                empty_widget.grid(sticky=tk.W, row=idx, column=1)
-                continue
-            wr = tk.Label(allied_frame, text=f"{str(player.wr)}%", bg=self.__transparent_color,
-                          fg=self.__color_for_wr(player.wr), font=self.__default_font)
-            dmg = tk.Label(allied_frame, text=str(player.avg_dmg), bg=self.__transparent_color,
-                           fg=self.__color_avg_dmg(player.avg_dmg), font=self.__default_font)
-            wr.grid(sticky=tk.W, row=idx, column=0, padx=(player_battle_box_width, 8))
-            dmg.grid(sticky=tk.W, row=idx, column=1)
-        allied_frame.grid(column=0, row=0, sticky=tk.NW)
-
-        enemy_frame = tk.Frame(self.__root)
-        enemy_frame.config(bg="white")
-        for idx, player in enumerate(enemy_list):
-            if not player.valid_to_print():
-                empty_widget = tk.Label(enemy_frame, text="", bg=self.__transparent_color)
-                empty_widget.grid(row=idx, column=1, padx=(8, player_battle_box_width))
-                empty_widget.grid(row=idx, column=0)
-                continue
-            wr = tk.Label(enemy_frame, text=f"{str(player.wr)}%", bg=self.__transparent_color,
-                          fg=self.__color_for_wr(player.wr), font=self.__default_font)
-            dmg = tk.Label(enemy_frame, text=str(player.avg_dmg), bg=self.__transparent_color,
-                           fg=self.__color_avg_dmg(player.avg_dmg), font=self.__default_font)
-            wr.grid(row=idx, column=1, padx=(8, player_battle_box_width))
-            dmg.grid(row=idx, column=0)
-        enemy_frame.grid(column=1, row=0, sticky=tk.NE)
-        self.__root.update()
+        os.system('cls||clear')
+        table = prettytable.PrettyTable(['Allied IGN', 'a_WR', 'a_Avg Dmg',
+                                         'Enemy IGN', "e_WR", "e_Avg Dmg"])
+        for tuple_player in zip(allied_list, enemy_list):
+            [allied, enemy] = tuple_player
+            table.add_row([allied.ign, self.__render_wr(allied.wr), self.__render_avg_dmg(allied.avg_dmg),
+                          enemy.ign, self.__render_wr(enemy.wr), self.__render_avg_dmg(enemy.avg_dmg)])
+        print(table)
+        return
 
 
 def __main__():
-    gui = ConsoleGui()
+    gui = TableGui()
     allied_list = [PlayerStats(ign=f"allied_{i}", wr=round(60 + i * 0.1, 2), avg_dmg=800 + int(f"{i}00")) for i in
                    range(7)]
     allied_list[1] = PlayerStats(ign="allied_failed")
-    enemy_list = [PlayerStats(ign=f"enemy_{i}", wr=round(50 + i, 2), avg_dmg=800 + int(f"{i}00")) for i in range(7)]
+    enemy_list = [PlayerStats(ign=f"enemy_{i}", wr=round(
+        50 + i, 2), avg_dmg=800 + int(f"{i}00")) for i in range(7)]
     gui.render(allied_list, enemy_list)
 
 

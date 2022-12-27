@@ -1,6 +1,5 @@
 import logging
 import math
-import time
 
 import pywinctl as pwc
 from PIL import ImageGrab, Image
@@ -28,7 +27,8 @@ def get_players_list_img(wotb_window: Image):
 def get_wotb_window() -> Image:
     window = pwc.getActiveWindow()
     if "WoT Blitz" not in window.title:
-        logging.warning("Active Window is not WoTB, will assume WoTB Blitz is full-screen")
+        logging.warning(
+            "Active Window is not WoTB, will assume WoTB Blitz is full-screen")
         active_screen = pwc.getScreenSize()
         return ImageGrab.grab((0, 0, active_screen.width, active_screen.height))
     return ImageGrab.grab((window.left, window.top, window.left + window.width, window.top + window.height))
