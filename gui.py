@@ -96,7 +96,7 @@ class TableGui(BaseGui, ColorStatsMixin):
         return console_color + str(value) + Fore.WHITE
 
     def render(self, allied_list: list[PlayerStats], enemy_list: list[PlayerStats]):
-        os.system('cls||clear')
+        os.system('cls' if os.name == 'nt' else 'clear')
         table = prettytable.PrettyTable(['Allied IGN', 'a_WR', 'a_Avg Dmg',
                                          'Enemy IGN', "e_WR", "e_Avg Dmg"])
         for tuple_player in zip(allied_list, enemy_list):
