@@ -1,3 +1,4 @@
+from multiprocessing.pool import Pool
 import os.path
 import re
 from math import floor
@@ -30,15 +31,18 @@ def processing_before_ocr(src_img: Image):
 def get_players_list(cropped_image):
     player_box_h = floor(AppConfig.players_section_h / __max_player)
     names: list[str] = []
+    boxs: list[any] = []
+
     for i in range(__max_player):
         player_box = cropped_image[player_box_h *
                                    i: player_box_h * (i + 1), 0:AppConfig.box_width]
         player_box = cv2.resize(player_box, None, fx=2,
                                 fy=2, interpolation=cv2.INTER_CUBIC)
-        player_ign = __get_ign_from_image(player_box)
-        if player_ign is None:
-            continue
-        names.append(player_ign)
+        boxs.append(player_box)
+
+    with Pool() as p:
+        names = p.map(__get_ign_from_image, boxs)
+
     return names
 
 
