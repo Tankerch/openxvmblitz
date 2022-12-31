@@ -7,6 +7,7 @@ from pynput import keyboard
 from config import AppConfig
 from gui import TableGui
 from player_service import WgApiService
+from player_stats import PlayerStats
 from preprocess_image import processing_before_ocr, get_players_list
 from screenshot import get_players_list_img, get_wotb_window
 
@@ -33,15 +34,15 @@ def start_xvm():
     enemy_ign_list = get_players_list(enemy_section_img)
 
     # Get player data via API
-    with ThreadPool() as api_pool:
-        api_service = WgApiService()
-        allied_pool = api_pool.apply_async(
-            api_service.get_players_stats, (allied_ign_list, "asia"))
-        enemy_pool = api_pool.apply_async(
-            api_service.get_players_stats, (enemy_ign_list, "asia"))
+    api_service = WgApiService()
+    allied_stats: list[PlayerStats] = []
+    enemy_stats: list[PlayerStats] = []
 
-        allied_stats = allied_pool.get()
-        enemy_stats = enemy_pool.get()
+    with ThreadPool() as pool:
+        allied_stats = [pool.apply_async(
+            api_service.get_stats, ign).get() for ign in allied_ign_list]
+        enemy_stats = [pool.apply_async(
+            api_service.get_stats, ign).get() for ign in enemy_ign_list]
 
     # Render
     TableGui().render(allied_stats, enemy_stats)

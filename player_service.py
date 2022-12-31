@@ -1,45 +1,38 @@
-import asyncio
 import logging
 import os
-from abc import abstractmethod
 from typing import Literal
-
-import requests
-from cachetools import cached, TTLCache
-from dotenv import load_dotenv
-
+import dotenv
+import cachetools
+from abc import abstractmethod, abstractproperty
 from player_stats import PlayerStats
+import requests
+
+WgServer = Literal["asia", "na", "eu", "ru"]
 
 
-class BasePlayerStatsService:
-    @abstractmethod
-    def get_players_stats(self, players: list[str], region: Literal["asia", "na", "eu", "ru"] = "asia",
-                          timeout: int = 5):
+class BaseStatsService:
+    @abstractproperty
+    def server(self) -> WgServer:
         pass
 
     @abstractmethod
-    def get_individual_stats(self, ign: str, region: Literal["asia", "na", "eu", "ru"],
-                             timeout: int = 5) -> PlayerStats:
+    async def get_stats(self, ign: str, timeout: int = 5) -> PlayerStats:
         pass
 
 
-class WgApiService(BasePlayerStatsService):
-    application_id: str | None
+class WgApiService(BaseStatsService):
+    application_id: str
+
+    server = "asia"
 
     def __init__(self):
-        load_dotenv()
-        self.application_id = os.environ.get("WG_APPS_ID")
+        dotenv.load_dotenv()
+        apps_id = os.environ.get("WG_APPS_ID")
+        if apps_id is None:
+            raise TypeError("WG_APPS_ID is None")
+        self.application_id = apps_id
 
-    def get_players_stats(self, players: list[str], region: Literal["asia", "na", "eu", "ru"] = "asia",
-                          timeout: int = 5):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        urls = [asyncio.ensure_future(self.get_individual_stats(ign=player, region=region, timeout=timeout)) for player
-                in players]
-        return loop.run_until_complete(asyncio.gather(*urls))
-
-    async def get_individual_stats(self, ign: str, region: Literal["asia", "na", "eu", "ru"],
-                                   timeout: int = 5) -> PlayerStats | None:
+    async def get_stats(self, ign: str) -> PlayerStats | None:
         account_id = self.__get_account_id(ign)
         if account_id is None:
             return PlayerStats(ign=ign)
@@ -48,11 +41,9 @@ class WgApiService(BasePlayerStatsService):
             return PlayerStats(ign=ign)
         return account_stats
 
-    @cached(cache=TTLCache(maxsize=1024, ttl=604800))
+    @cachetools.cached(cache=cachetools.TTLCache(maxsize=1024, ttl=604800))
     def __fetch_to_wg_api(self, account_id: str):
-        if self.application_id is None:
-            return None
-        res = requests.get("https://api.wotblitz.asia/wotb/account/info/",
+        res = requests.get(f"https://api.wotblitz.{self.server}/wotb/account/info/",
                            params={"application_id": self.application_id, "account_id": account_id,
                                    "fields": "statistics.all.dropped_capture_points,statistics.all.spotted,account_id,nickname,"
                                              "statistics.all.battles,statistics.all.damage_dealt,statistics.all.wins,statistics.all.frags "})
@@ -62,12 +53,9 @@ class WgApiService(BasePlayerStatsService):
             logging.error("__fetch_to_wg_api" + str(e))
             return None
 
-    @cached(cache={})
+    @cachetools.cached(cache={})
     def __get_account_id(self, ign: str) -> str | None:
-        if self.application_id is None:
-            return None
-
-        res = requests.get(f'https://api.wotblitz.asia/wotb/account/list/',
+        res = requests.get(f'https://api.wotblitz.{self.server}/wotb/account/list/',
                            params={"application_id": self.application_id, "search": ign, "type": "exact"})
         data = res.json()
         try:
