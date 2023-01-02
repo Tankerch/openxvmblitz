@@ -1,5 +1,4 @@
 import os
-import tkinter as tk
 from abc import abstractmethod
 import prettytable
 from colorama import Fore
@@ -19,7 +18,7 @@ class BaseGui:
         pass
 
 
-class ColorStatsMixin:
+class ConsoleColorStatsMixin:
     @staticmethod
     def color_avg_damage(avg_damage: int) -> Fore:
         if avg_damage > 1400:
@@ -37,7 +36,7 @@ class ColorStatsMixin:
         return console_color_code["bad"]
 
 
-class TableGui(BaseGui, ColorStatsMixin):
+class TableGui(BaseGui, ConsoleColorStatsMixin):
     @staticmethod
     def __render_avg_dmg(value):
         if value is None:
@@ -59,8 +58,12 @@ class TableGui(BaseGui, ColorStatsMixin):
                                          'Enemy IGN', "e_WR", "e_Avg Dmg"])
         for tuple_player in zip(allied_list, enemy_list):
             [allied, enemy] = tuple_player
+            if allied.ign_is_empty():
+                continue
             table.add_row([allied.ign, self.__render_wr(allied.wr), self.__render_avg_dmg(allied.avg_dmg),
+
                           enemy.ign, self.__render_wr(enemy.wr), self.__render_avg_dmg(enemy.avg_dmg)])
+
         print(table)
         return
 

@@ -13,6 +13,9 @@ from screenshot import get_players_list_img, get_wotb_window
 
 processing = False
 
+render_service = TableGui()
+api_service = WgApiService()
+
 
 def start_xvm():
     print("Start Processing Screenshot")
@@ -34,7 +37,6 @@ def start_xvm():
     enemy_ign_list = get_players_list(enemy_section_img)
 
     # Get player data via API
-    api_service = WgApiService()
     allied_stats: list[PlayerStats] = []
     enemy_stats: list[PlayerStats] = []
 
@@ -45,7 +47,7 @@ def start_xvm():
             api_service.get_stats, ign).get() for ign in enemy_ign_list]
 
     # Render
-    TableGui().render(allied_stats, enemy_stats)
+    render_service.render(allied_stats, enemy_stats)
     print(f"Done in {time.perf_counter() - start_time} second(s)")
     print(colorama.Fore.WHITE + colorama.Back.RESET)
 
@@ -61,12 +63,7 @@ def on_press(key: keyboard.Key | keyboard.KeyCode):
         print("Start listening... on Numpad 3")
 
 
-def initialise():
-    colorama.init()
-
-
 def main():
-    initialise()
     with keyboard.Listener(on_press=on_press) as listener:
         print("Start listening... on Numpad 3")
         listener.join()
