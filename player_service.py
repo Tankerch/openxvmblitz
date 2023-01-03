@@ -42,11 +42,11 @@ class WgApiService(BaseStatsService):
 
     @cachetools.cached(cache=cachetools.TTLCache(maxsize=1024, ttl=604800))
     async def __fetch_to_wg_api(self, account_id: str):
-        res = requests.get(f"https://api.wotblitz.{self.server}/wotb/account/info/",
-                           params={"application_id": self.application_id, "account_id": account_id,
-                                   "fields": "statistics.all.dropped_capture_points,statistics.all.spotted,account_id,nickname,"
-                                             "statistics.all.battles,statistics.all.damage_dealt,statistics.all.wins,statistics.all.frags "})
         try:
+            res = requests.get(f"https://api.wotblitz.{self.server}/wotb/account/info/",
+                               params={"application_id": self.application_id, "account_id": account_id,
+                                       "fields": "statistics.all.dropped_capture_points,statistics.all.spotted,account_id,nickname,"
+                                       "statistics.all.battles,statistics.all.damage_dealt,statistics.all.wins,statistics.all.frags "})
             return self.__convert_to_player_statistic(res.json()["data"][f"{account_id}"])
         except Exception as e:
             logging.error("__fetch_to_wg_api" + str(e))

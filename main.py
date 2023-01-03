@@ -1,5 +1,6 @@
+import asyncio
 import time
-from multiprocessing.pool import ThreadPool
+from multiprocessing.pool import AsyncResult, ThreadPool
 
 import colorama
 from pynput import keyboard
@@ -37,14 +38,18 @@ def start_xvm():
     enemy_ign_list = get_players_list(enemy_section_img)
 
     # Get player data via API
-    allied_stats: list[PlayerStats] = []
-    enemy_stats: list[PlayerStats] = []
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
-    with ThreadPool() as pool:
-        allied_stats = [pool.apply_async(
-            api_service.get_stats, ign).get() for ign in allied_ign_list]
-        enemy_stats = [pool.apply_async(
-            api_service.get_stats, ign).get() for ign in enemy_ign_list]
+    allied_tasks = [api_service.get_stats(ign) for ign in allied_ign_list]
+    enemy_tasks = [api_service.get_stats(ign) for ign in enemy_ign_list]
+
+    allied_stats: list[PlayerStats] = loop.run_until_complete(asyncio.gather(
+        *allied_tasks
+    ))
+    enemy_stats: list[PlayerStats] = loop.run_until_complete(asyncio.gather(
+        *enemy_tasks
+    ))
 
     # Render
     render_service.render(allied_stats, enemy_stats)
