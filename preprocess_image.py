@@ -43,7 +43,7 @@ def get_players_list(cropped_image):
     with Pool() as p:
         names = p.map(__get_ign_from_image, boxs)
 
-    return names
+    return filter(lambda name: name != None, names)
 
 
 def __get_ign_from_image(full_img):
