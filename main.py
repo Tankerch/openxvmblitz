@@ -1,6 +1,5 @@
 import asyncio
 import time
-from multiprocessing.pool import AsyncResult, ThreadPool
 
 import colorama
 from pynput import keyboard
