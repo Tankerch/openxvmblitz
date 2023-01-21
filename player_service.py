@@ -30,17 +30,17 @@ class WgApiService(BaseStatsService):
             raise TypeError("WG_APPS_ID is None")
         self.application_id = apps_id
 
-    async def get_stats(self, ign: str) -> PlayerStats | None:
+    def get_stats(self, ign: str) -> PlayerStats | None:
         account_id = self.__get_account_id(ign)
         if account_id is None:
             return PlayerStats(ign=ign)
-        account_stats = await self.__fetch_to_wg_api(account_id)
+        account_stats = self.__fetch_to_wg_api(account_id)
         if account_stats is None:
             return PlayerStats(ign=ign)
         return account_stats
 
     @cachetools.cached(cache=cachetools.TTLCache(maxsize=1024, ttl=604800))
-    async def __fetch_to_wg_api(self, account_id: str):
+    def __fetch_to_wg_api(self, account_id: str):
         try:
             res = requests.get(f"https://api.wotblitz.{self.server}/wotb/account/info/",
                                params={"application_id": self.application_id, "account_id": account_id,

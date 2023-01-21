@@ -1,4 +1,3 @@
-import asyncio
 import time
 
 import colorama
@@ -37,20 +36,9 @@ def start_xvm():
     enemy_ign_list = get_players_list(enemy_section_img)
 
     # Get player data via API
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    allied_stats = [api_service.get_stats(ign) for ign in allied_ign_list]
+    enemy_stats = [api_service.get_stats(ign) for ign in enemy_ign_list]
 
-    allied_tasks = [api_service.get_stats(ign) for ign in allied_ign_list]
-    enemy_tasks = [api_service.get_stats(ign) for ign in enemy_ign_list]
-
-    allied_stats: list[PlayerStats] = loop.run_until_complete(asyncio.gather(
-        *allied_tasks
-    ))
-    enemy_stats: list[PlayerStats] = loop.run_until_complete(asyncio.gather(
-        *enemy_tasks
-    ))
-
-    # Render
     render_service.render(allied_stats, enemy_stats)
     print(f"Done in {time.perf_counter() - start_time} second(s)")
     print(colorama.Fore.WHITE + colorama.Back.RESET)
