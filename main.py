@@ -6,7 +6,6 @@ from pynput import keyboard
 from config import AppConfig
 from gui import TableGui
 from player_service import WgApiService
-from player_stats import PlayerStats
 from preprocess_image import processing_before_ocr, get_players_list
 from screenshot import get_players_list_img, get_wotb_window
 
