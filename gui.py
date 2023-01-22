@@ -1,4 +1,3 @@
-import os
 from abc import abstractmethod
 import prettytable
 from colorama import Fore
@@ -19,6 +18,7 @@ class BaseGui:
 
 
 class ConsoleColorStatsMixin:
+
     @staticmethod
     def color_avg_damage(avg_damage: int) -> Fore:
         if avg_damage > 1400:
@@ -53,7 +53,6 @@ class TableGui(BaseGui, ConsoleColorStatsMixin):
         return console_color + str(value) + Fore.WHITE
 
     def render(self, allied_list: list[PlayerStats], enemy_list: list[PlayerStats]):
-        os.system('cls' if os.name == 'nt' else 'clear')
         table = prettytable.PrettyTable(['Allied IGN', 'a_WR', 'a_Avg Dmg',
                                          'Enemy IGN', "e_WR", "e_Avg Dmg"])
         for tuple_player in zip(allied_list, enemy_list):
@@ -62,8 +61,7 @@ class TableGui(BaseGui, ConsoleColorStatsMixin):
                 continue
             table.add_row([allied.ign, self.__render_wr(allied.wr), self.__render_avg_dmg(allied.avg_dmg),
 
-                          enemy.ign, self.__render_wr(enemy.wr), self.__render_avg_dmg(enemy.avg_dmg)])
-
+                           enemy.ign, self.__render_wr(enemy.wr), self.__render_avg_dmg(enemy.avg_dmg)])
         print(table)
         return
 
